@@ -17,8 +17,7 @@ class PhoneViewController: UIViewController {
   let descriptionLabel = UILabel()
   
   let initialNumber = Observable.just("010")
-  let notNumberInvalidText = Observable.just("숫자만 입력 가능해요")
-  let overMinLengthInvalidText = Observable.just("10자 이상 입력해주세요")
+  let invalidDescriptionText = Observable.just("10자 이상의 숫자만 입력 가능해요")
   let disposeBag = DisposeBag()
   
   override func viewDidLoad() {
@@ -63,21 +62,24 @@ class PhoneViewController: UIViewController {
       .bind(to: phoneTextField.rx.text)
       .disposed(by: disposeBag)
     
-    let validation = phoneTextField.rx.text.orEmpty
-      .compactMap { Int($0) }
-      .map { String($0).count >= 10 }
-
-    validation
-      .withLatestFrom(overMinLengthInvalidText)
+    invalidDescriptionText
       .bind(to: descriptionLabel.rx.text)
       .disposed(by: disposeBag)
     
-    validation
+    let onlyNumberValidation = phoneTextField.rx.text.orEmpty
+      .map { Int($0) != nil }
+    
+    let lengthValidation = phoneTextField.rx.text.orEmpty
+      .map { $0.count >= 10 }
+
+    let combineValidation = Observable.combineLatest(onlyNumberValidation, lengthValidation) { $0 && $1 }
+    
+    combineValidation
       .map { $0 ? UIColor.systemCyan : UIColor.lightGray }
       .bind(to: nextButton.rx.backgroundColor)
       .disposed(by: disposeBag)
     
-    validation
+    combineValidation
       .bind(to: nextButton.rx.isEnabled, descriptionLabel.rx.isHidden)
       .disposed(by: disposeBag)
   }
