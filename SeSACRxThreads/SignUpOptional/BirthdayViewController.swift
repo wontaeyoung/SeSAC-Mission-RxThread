@@ -75,14 +75,15 @@ class BirthdayViewController: UIViewController {
     
     configureLayout()
     bind()
+  }
+  
+  private func nextButtonClicked() {
+    let viewController = SampleViewController()
     
-    nextButton.addTarget(self, action: #selector(nextButtonClicked), for: .touchUpInside)
+    guard let window = UIApplication.shared.keyWindow else { return }
+    
+    window.rootViewController = viewController
   }
-  
-  @objc func nextButtonClicked() {
-    print("가입완료")
-  }
-  
   
   func configureLayout() {
     view.addSubview(infoLabel)
@@ -130,6 +131,12 @@ class BirthdayViewController: UIViewController {
     dayText
       .map { "\($0)일"}
       .bind(to: dayLabel.rx.text)
+      .disposed(by: disposeBag)
+    
+    nextButton.rx.tap
+      .bind(with: self) { owner, _ in
+        owner.nextButtonClicked()
+      }
       .disposed(by: disposeBag)
     
     birthDayPicker.rx.date
