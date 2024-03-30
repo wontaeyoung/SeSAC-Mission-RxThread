@@ -45,6 +45,7 @@ final class SampleViewController: UIViewController {
     
     view.backgroundColor = Color.white
     configureLayout()
+    bind()
   }
   
   func configureLayout() {
@@ -69,5 +70,35 @@ final class SampleViewController: UIViewController {
       make.horizontalEdges.equalTo(view)
       make.bottom.equalTo(view.safeAreaLayoutGuide)
     }
+  }
+  
+  private func bind() {
+    listSubject
+      .bind(to: tableView.rx.items(cellIdentifier: "Cell")) { row, item, cell in
+        cell.textLabel?.text = "\(row) - \(item)"
+      }
+      .disposed(by: disposeBag)
+    
+    tableView.rx.itemSelected
+      .bind(with: self) { owner, indexPath in
+        owner.list.remove(at: indexPath.row)
+      }
+      .disposed(by: disposeBag)
+    
+    inputField.rx.text.orEmpty
+      .map { !$0.isEmpty }
+      .bind(to: applyButton.rx.isEnabled)
+      .disposed(by: disposeBag)
+    
+    applyButton.rx.tap
+      .withLatestFrom(inputField.rx.text.orEmpty)
+      .bind(with: self) { owner, text in
+        owner.addItem(with: text)
+      }
+      .disposed(by: disposeBag)
+  }
+  
+  private func addItem(with text: String) {
+    list.append(text)
   }
 }
