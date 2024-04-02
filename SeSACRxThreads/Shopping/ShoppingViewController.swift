@@ -30,6 +30,7 @@ final class ShoppingViewController: RxBaseViewController, ViewModelController {
   }
   
   private let emptyTextRelay = PublishRelay<Void>()
+  private let editItemRelay = PublishRelay<(indexPath: IndexPath, item: ShopItem)>()
   
   // MARK: - Property
   let viewModel: ShoppingViewModel
@@ -69,6 +70,7 @@ final class ShoppingViewController: RxBaseViewController, ViewModelController {
   override func bind() {
     let input = ShoppingViewModel.Input(
       addItem: .init(),
+      updateItem: .init(),
       deleteItem: .init(),
       checkboxTapEvent: .init(),
       bookmarkTapEvent: .init()
@@ -94,6 +96,16 @@ final class ShoppingViewController: RxBaseViewController, ViewModelController {
       .bind(to: input.deleteItem)
       .disposed(by: disposeBag)
     
+    Observable.zip(
+      tableView.rx.itemSelected,
+      tableView.rx.modelSelected(ShopItem.self)
+    )
+    .subscribe(with: self) { owner, row in
+      let (index, item) = row
+      owner.presentEditSheet(at: index, with: item)
+    }
+    .disposed(by: disposeBag)
+    
     emptyTextRelay
       .map { "" }
       .bind(to: inputField.rx.text)
@@ -118,5 +130,25 @@ final class ShoppingViewController: RxBaseViewController, ViewModelController {
       .map { ShopItem(name: $0) }
       .bind(to: input.addItem)
       .disposed(by: disposeBag)
+    
+    editItemRelay
+      .map { ($0.indexPath, $0.item) }
+      .bind(to: input.updateItem)
+      .disposed(by: disposeBag)
+  }
+  
+  private func presentEditSheet(at indexPath: IndexPath, with item: ShopItem) {
+    let vc = EditShoppingSheetController(item: item).configured {
+      $0.sheetPresentationController?.configure {
+        $0.detents = [.medium()]
+      }
+    }
+    
+    vc.itemRelay
+      .map { (indexPath, $0) }
+      .bind(to: editItemRelay)
+      .disposed(by: disposeBag)
+    
+    present(vc, animated: true)
   }
 }
