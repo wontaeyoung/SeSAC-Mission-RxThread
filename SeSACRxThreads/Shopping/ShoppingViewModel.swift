@@ -14,6 +14,7 @@ final class ShoppingViewModel: ViewModel {
   // MARK: - I / O
   struct Input {
     let addItem: PublishRelay<ShopItem>
+    let updateItem: PublishRelay<(at: IndexPath, updated: ShopItem)>
     let deleteItem: PublishRelay<IndexPath>
     let checkboxTapEvent: PublishRelay<Int>
     let bookmarkTapEvent: PublishRelay<Int>
@@ -44,6 +45,13 @@ final class ShoppingViewModel: ViewModel {
       }
       .disposed(by: disposeBag)
     
+    input.updateItem
+      .subscribe(with: self) { owner, row in
+        let (indexPath, item) = row
+        owner.updateItem(at: indexPath, with: item)
+      }
+      .disposed(by: disposeBag)
+    
     input.deleteItem
       .subscribe(with: self) { owner, indexPath in
         owner.deleteItem(at: indexPath)
@@ -67,6 +75,10 @@ final class ShoppingViewModel: ViewModel {
   
   private func addItem(with item: ShopItem) {
     items.insert(item, at: 0)
+  }
+  
+  private func updateItem(at indexPath: IndexPath, with item: ShopItem) {
+    items[indexPath.row] = item
   }
   
   private func deleteItem(at indexPath: IndexPath) {
