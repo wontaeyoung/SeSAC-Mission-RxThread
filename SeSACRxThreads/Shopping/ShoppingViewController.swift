@@ -29,6 +29,8 @@ final class ShoppingViewController: RxBaseViewController, ViewModelController {
     $0.keyboardDismissMode = .onDrag
   }
   
+  private let emptyTextRelay = PublishRelay<Void>()
+  
   // MARK: - Property
   let viewModel: ShoppingViewModel
   
@@ -65,6 +67,56 @@ final class ShoppingViewController: RxBaseViewController, ViewModelController {
   }
   
   override func bind() {
+    let input = ShoppingViewModel.Input(
+      addItem: .init(),
+      deleteItem: .init(),
+      checkboxTapEvent: .init(),
+      bookmarkTapEvent: .init()
+    )
     
+    let output = viewModel.transform(input: input)
+    
+    output.items
+      .drive(tableView.rx.items(cellIdentifier: ShoppingTableCell.identifier, cellType: ShoppingTableCell.self)) { row, element, cell in
+        cell.updateUI(with: element)
+        
+        cell.checkboxButtonTapEvent {
+          input.checkboxTapEvent.accept(row)
+        }
+        
+        cell.bookmarkButtonTapEvent {
+          input.bookmarkTapEvent.accept(row)
+        }
+      }
+      .disposed(by: disposeBag)
+      
+    tableView.rx.itemDeleted
+      .bind(to: input.deleteItem)
+      .disposed(by: disposeBag)
+    
+    emptyTextRelay
+      .map { "" }
+      .bind(to: inputField.rx.text)
+      .disposed(by: disposeBag)
+    
+    emptyTextRelay
+      .map { false }
+      .bind(to: addButton.rx.isEnabled)
+      .disposed(by: disposeBag)
+    
+    inputField.rx.text.orEmpty
+      .map { !$0.isEmpty }
+      .bind(to: addButton.rx.isEnabled)
+      .disposed(by: disposeBag)
+    
+    addButton.rx.tap
+      .withLatestFrom(inputField.rx.text.orEmpty)
+      .filter { !$0.isEmpty }
+      .do { _ in
+        self.emptyTextRelay.accept(())
+      }
+      .map { ShopItem(name: $0) }
+      .bind(to: input.addItem)
+      .disposed(by: disposeBag)
   }
 }
