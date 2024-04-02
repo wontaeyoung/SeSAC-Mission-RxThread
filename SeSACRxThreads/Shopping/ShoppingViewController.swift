@@ -138,17 +138,13 @@ final class ShoppingViewController: RxBaseViewController, ViewModelController {
   }
   
   private func presentEditSheet(at indexPath: IndexPath, with item: ShopItem) {
-    let vc = EditShoppingSheetController(item: item).configured {
-      $0.sheetPresentationController?.configure {
-        $0.detents = [.medium()]
-      }
-    }
+    let vc = EditShoppingSheetController(item: item)
     
     vc.itemRelay
       .map { (indexPath, $0) }
       .bind(to: editItemRelay)
       .disposed(by: disposeBag)
     
-    present(vc, animated: true)
+    navigationController?.pushViewController(vc, animated: true)
   }
 }

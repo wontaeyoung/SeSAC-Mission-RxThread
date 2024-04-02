@@ -24,6 +24,7 @@ final class EditShoppingSheetController: RxBaseViewController {
   
   // MARK: - Property
   let itemRelay: BehaviorRelay<ShopItem>
+  private let editDoneEvent = PublishRelay<Void>()
   
   // MARK: - Initializer
   init(item: ShopItem) {
@@ -58,17 +59,18 @@ final class EditShoppingSheetController: RxBaseViewController {
       .bind(to: inputField.rx.text)
       .disposed(by: disposeBag)
     
-    itemRelay
-      .bind(with: self) { owner, _ in
-        owner.dismiss(animated: true)
-      }
-      .disposed(by: disposeBag)
-    
     editButton.rx.tap
       .withLatestFrom(inputField.rx.text.orEmpty)
       .bind(with: self, onNext: { owner, newName in
         owner.updateItem(text: newName)
+        owner.editDoneEvent.accept(())
       })
+      .disposed(by: disposeBag)
+    
+    editDoneEvent
+      .bind(with: self) { owner, _ in
+        owner.navigationController?.popViewController(animated: true)
+      }
       .disposed(by: disposeBag)
   }
   
