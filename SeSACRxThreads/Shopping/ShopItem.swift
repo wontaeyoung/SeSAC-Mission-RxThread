@@ -10,4 +10,10 @@ struct ShopItem {
   var name: String
   var isDone: Bool
   var bookmark: Bool
+  
+  init(name: String) {
+    self.name = name
+    self.isDone = false
+    self.bookmark = false
+  }
 }
