@@ -8,19 +8,21 @@
 import UIKit
 
 class PointButton: UIButton {
+  
+  init(title: String) {
+    super.init(frame: .zero)
     
-    init(title: String) {
-        super.init(frame: .zero)
-        
-        setTitle(title, for: .normal)
-        setTitleColor(Color.white, for: .normal)
-        backgroundColor = Color.black
-        layer.cornerRadius = 10 
+    configuration = .filled().configured {
+      $0.title = title
+      $0.baseBackgroundColor = .black
+      $0.cornerStyle = .large
+      $0.buttonSize = .large
     }
-    
-    @available(*, unavailable)
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
+  }
+  
+  @available(*, unavailable)
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+  
 }
