@@ -5,7 +5,7 @@
 //  Created by 원태영 on 4/2/24.
 //
 
-struct ShopItem {
+struct ShopItem: Equatable {
   
   var name: String
   var isDone: Bool
