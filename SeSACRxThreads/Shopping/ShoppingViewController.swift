@@ -69,6 +69,7 @@ final class ShoppingViewController: RxBaseViewController, ViewModelController {
   
   override func bind() {
     let input = ShoppingViewModel.Input(
+      queryItems: .init(),
       addItem: .init(),
       updateItem: .init(),
       deleteItem: .init(),
@@ -119,6 +120,12 @@ final class ShoppingViewController: RxBaseViewController, ViewModelController {
     inputField.rx.text.orEmpty
       .map { !$0.isEmpty }
       .bind(to: addButton.rx.isEnabled)
+      .disposed(by: disposeBag)
+    
+    inputField.rx.text.orEmpty
+      .distinctUntilChanged()
+      .debounce(.seconds(1), scheduler: MainScheduler.instance)
+      .bind(to: input.queryItems)
       .disposed(by: disposeBag)
     
     addButton.rx.tap
