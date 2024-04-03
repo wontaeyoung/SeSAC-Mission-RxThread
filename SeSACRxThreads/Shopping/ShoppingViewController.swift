@@ -13,6 +13,10 @@ import RxCocoa
 final class ShoppingViewController: RxBaseViewController, ViewModelController {
   
   // MARK: - UI
+  private let searchBar = UISearchBar().configured {
+    $0.backgroundImage = UIImage()
+  }
+  
   private let inputField = SignTextField(placeholderText: "무엇을 구매하실건가요?")
   private let addButton = UIButton().configured {
     $0.configuration = .filled().configured {
@@ -30,7 +34,7 @@ final class ShoppingViewController: RxBaseViewController, ViewModelController {
   }
   
   private let emptyTextRelay = PublishRelay<Void>()
-  private let editItemRelay = PublishRelay<(indexPath: IndexPath, item: ShopItem)>()
+  private let editItemRelay = PublishRelay<ShopItem>()
   
   // MARK: - Property
   let viewModel: ShoppingViewModel
@@ -44,21 +48,23 @@ final class ShoppingViewController: RxBaseViewController, ViewModelController {
   
   // MARK: - Life Cycle
   override func setHierarchy() {
-    view.addSubviews(inputField, addButton, tableView)
+    view.addSubviews(searchBar, inputField, addButton, tableView)
+    
+    navigationItem.titleView = searchBar
   }
   
   override func setConstraint() {
     inputField.snp.makeConstraints { make in
       make.top.equalTo(view.safeAreaLayoutGuide)
       make.leading.equalTo(view).inset(20)
-      make.height.equalTo(50)
+      make.height.equalTo(40)
     }
     
     addButton.snp.makeConstraints { make in
       make.top.equalTo(inputField)
       make.leading.equalTo(inputField.snp.trailing).offset(10)
       make.trailing.equalTo(view).inset(20)
-      make.height.equalTo(50)
+      make.height.equalTo(40)
     }
     
     tableView.snp.makeConstraints { make in
@@ -69,7 +75,7 @@ final class ShoppingViewController: RxBaseViewController, ViewModelController {
   
   override func bind() {
     let input = ShoppingViewModel.Input(
-      queryItems: .init(),
+      query: .init(),
       addItem: .init(),
       updateItem: .init(),
       deleteItem: .init(),
@@ -84,51 +90,51 @@ final class ShoppingViewController: RxBaseViewController, ViewModelController {
         cell.updateUI(with: element)
         
         cell.checkboxButtonTapEvent {
-          input.checkboxTapEvent.accept(row)
+          input.checkboxTapEvent.accept(element.id)
         }
         
         cell.bookmarkButtonTapEvent {
-          input.bookmarkTapEvent.accept(row)
+          input.bookmarkTapEvent.accept(element.id)
         }
       }
       .disposed(by: disposeBag)
       
+    tableView.rx.modelSelected(ShopItem.self)
+      .bind(with: self) { owner, item in
+        owner.presentEditSheet(with: item)
+      }
+      .disposed(by: disposeBag)
+    
     tableView.rx.itemDeleted
+      .withUnretained(self)
+      .compactMap { owner, indexPath in
+        try owner.tableView.rx.model(at: indexPath) as ShopItem
+      }
+      .map { $0.id }
       .bind(to: input.deleteItem)
       .disposed(by: disposeBag)
     
-    Observable.zip(
-      tableView.rx.itemSelected,
-      tableView.rx.modelSelected(ShopItem.self)
-    )
-    .subscribe(with: self) { owner, row in
-      let (index, item) = row
-      owner.presentEditSheet(at: index, with: item)
-    }
-    .disposed(by: disposeBag)
+    let emptyText = emptyTextRelay.map { "" }
     
-    emptyTextRelay
-      .map { "" }
+    emptyText
       .bind(to: inputField.rx.text)
       .disposed(by: disposeBag)
     
-    emptyTextRelay
-      .map { false }
+    emptyText
+      .map { _ in false }
       .bind(to: addButton.rx.isEnabled)
       .disposed(by: disposeBag)
     
+    searchBar.rx.text.orEmpty
+      .distinctUntilChanged()
+      .debounce(.seconds(1), scheduler: MainScheduler.instance)
+      .bind(to: input.query)
+      .disposed(by: disposeBag)
+     
     inputField.rx.text.orEmpty
       .map { !$0.isEmpty }
       .bind(to: addButton.rx.isEnabled)
       .disposed(by: disposeBag)
-    
-    /** 실시간 검색 기능과 데이터 업데이트 충돌로 주석처리
-    inputField.rx.text.orEmpty
-      .distinctUntilChanged()
-      .debounce(.seconds(1), scheduler: MainScheduler.instance)
-      .bind(to: input.queryItems)
-      .disposed(by: disposeBag)
-     */
     
     addButton.rx.tap
       .withLatestFrom(inputField.rx.text.orEmpty)
@@ -141,16 +147,14 @@ final class ShoppingViewController: RxBaseViewController, ViewModelController {
       .disposed(by: disposeBag)
     
     editItemRelay
-      .map { ($0.indexPath, $0.item) }
       .bind(to: input.updateItem)
       .disposed(by: disposeBag)
   }
   
-  private func presentEditSheet(at indexPath: IndexPath, with item: ShopItem) {
+  private func presentEditSheet(with item: ShopItem) {
     let vc = EditShoppingSheetController(item: item)
     
     vc.itemRelay
-      .map { (indexPath, $0) }
       .bind(to: editItemRelay)
       .disposed(by: disposeBag)
     

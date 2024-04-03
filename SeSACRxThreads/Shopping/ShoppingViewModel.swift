@@ -13,12 +13,12 @@ final class ShoppingViewModel: ViewModel {
   
   // MARK: - I / O
   struct Input {
-    let queryItems: PublishRelay<String>
+    let query: PublishRelay<String>
     let addItem: PublishRelay<ShopItem>
-    let updateItem: PublishRelay<(at: IndexPath, updated: ShopItem)>
-    let deleteItem: PublishRelay<IndexPath>
-    let checkboxTapEvent: PublishRelay<Int>
-    let bookmarkTapEvent: PublishRelay<Int>
+    let updateItem: PublishRelay<ShopItem>
+    let deleteItem: PublishRelay<UUID>
+    let checkboxTapEvent: PublishRelay<UUID>
+    let bookmarkTapEvent: PublishRelay<UUID>
   }
   
   struct Output {
@@ -40,15 +40,18 @@ final class ShoppingViewModel: ViewModel {
   // MARK: - Method
   func transform(input: Input) -> Output {
     
-    input.queryItems
-      .withUnretained(self)
-      .map { owner, query in
-        query.isEmpty
-        ? owner.items
-        : owner.items.filter { $0.name.contains(query) }
+    let output = Observable.combineLatest(
+      input.query,
+      itemsRelay
+    )
+      .debug()
+      .map { (query: $0.0, items: $0.1) }
+      .map { value in
+        return value.query.isEmpty
+        ? value.items
+        : value.items.filter { $0.name.contains(value.query) }
       }
-      .bind(to: itemsRelay)
-      .disposed(by: disposeBag)
+      .asDriver(onErrorJustReturn: [])
     
     input.addItem
       .subscribe(with: self) { owner, item in
@@ -57,64 +60,57 @@ final class ShoppingViewModel: ViewModel {
       .disposed(by: disposeBag)
     
     input.updateItem
-      .subscribe(with: self) { owner, row in
-        let (indexPath, item) = row
-        guard let originalIndex = owner.originalIndex(at: indexPath.row) else { return }
-        guard owner.items[originalIndex].name != item.name else { return }
-        
-        owner.updateItem(at: indexPath, with: item)
+      .subscribe(with: self) { owner, updatedItem in
+        owner.updateItem(with: updatedItem)
       }
       .disposed(by: disposeBag)
     
     input.deleteItem
-      .subscribe(with: self) { owner, indexPath in
-        owner.deleteItem(at: indexPath)
+      .subscribe(with: self) { owner, id in
+        owner.deleteItem(id: id)
       }
       .disposed(by: disposeBag)
     
     input.checkboxTapEvent
-      .subscribe(with: self) { owner, index in
-        owner.toggleCheckbox(at: index)
+      .subscribe(with: self) { owner, id in
+        owner.toggleCheckbox(id: id)
       }
       .disposed(by: disposeBag)
     
     input.bookmarkTapEvent
-      .subscribe(with: self) { owner, index in
-        owner.toggleBookmark(at: index)
+      .subscribe(with: self) { owner, id in
+        owner.toggleBookmark(id: id)
       }
       .disposed(by: disposeBag)
     
-    return Output(items: itemsRelay.asDriver())
+    return Output(items: output)
   }
   
-  private func originalIndex(at index: Int) -> Int? {
-    let item = itemsRelay.value[index]
-    guard let originalIndex = items.firstIndex(of: item) else { return nil }
-    return originalIndex
+  private func originalIndex(id: UUID) -> Int? {
+    return items.firstIndex { $0.id == id }
   }
   
   private func addItem(with item: ShopItem) {
-    guard items.filter({ $0.name == item.name }).isEmpty else { return }
     items.insert(item, at: 0)
   }
   
-  private func updateItem(at indexPath: IndexPath, with item: ShopItem) {
-    guard let originalIndex = originalIndex(at: indexPath.row) else { return }
-    items[originalIndex] = item
+  private func updateItem(with item: ShopItem) {
+    guard let index = originalIndex(id: item.id) else { return }
+    items[index] = item
   }
   
-  private func deleteItem(at indexPath: IndexPath) {
-    guard let originalIndex = originalIndex(at: indexPath.row) else { return }
-    items.remove(at: originalIndex)
+  private func deleteItem(id: UUID) {
+    guard let index = originalIndex(id: id) else { return }
+    items.remove(at: index)
   }
   
-  private func toggleCheckbox(at index: Int) {
-    guard let originalIndex = originalIndex(at: index) else { return }
-    items[originalIndex].isDone.toggle()
+  private func toggleCheckbox(id: UUID) {
+    guard let index = originalIndex(id: id) else { return }
+    items[index].isDone.toggle()
   }
   
-  private func toggleBookmark(at index: Int) {
-    guard let originalIndex = originalIndex(at: index) else { return }
-    items[originalIndex].bookmark.toggle()
+  private func toggleBookmark(id: UUID) {
+    guard let index = originalIndex(id: id) else { return }
+    items[index].bookmark.toggle()
   }
 }
