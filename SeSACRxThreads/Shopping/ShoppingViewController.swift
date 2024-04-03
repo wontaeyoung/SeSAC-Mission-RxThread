@@ -122,11 +122,13 @@ final class ShoppingViewController: RxBaseViewController, ViewModelController {
       .bind(to: addButton.rx.isEnabled)
       .disposed(by: disposeBag)
     
+    /** 실시간 검색 기능과 데이터 업데이트 충돌로 주석처리
     inputField.rx.text.orEmpty
       .distinctUntilChanged()
       .debounce(.seconds(1), scheduler: MainScheduler.instance)
       .bind(to: input.queryItems)
       .disposed(by: disposeBag)
+     */
     
     addButton.rx.tap
       .withLatestFrom(inputField.rx.text.orEmpty)
