@@ -10,7 +10,7 @@ import SnapKit
 import RxSwift
 import RxCocoa
 
-final class ShoppingViewController: RxBaseViewController, ViewModelController {
+final class ShoppingViewController: RxBaseViewController {
   
   // MARK: - UI
   private let searchBar = UISearchBar().configured {
@@ -37,14 +37,7 @@ final class ShoppingViewController: RxBaseViewController, ViewModelController {
   private let editItemRelay = PublishRelay<ShopItem>()
   
   // MARK: - Property
-  let viewModel: ShoppingViewModel
-  
-  // MARK: - Initializer
-  init(viewModel: ShoppingViewModel) {
-    self.viewModel = viewModel
-    
-    super.init()
-  }
+  private let viewModel = ShoppingViewModel()
   
   // MARK: - Life Cycle
   override func setHierarchy() {
