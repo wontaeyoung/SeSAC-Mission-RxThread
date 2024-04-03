@@ -44,7 +44,6 @@ final class ShoppingViewModel: ViewModel {
       input.query,
       itemsRelay
     )
-      .debug()
       .map { (query: $0.0, items: $0.1) }
       .map { value in
         return value.query.isEmpty

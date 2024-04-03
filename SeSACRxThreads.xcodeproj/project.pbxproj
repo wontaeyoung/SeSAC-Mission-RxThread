@@ -40,6 +40,7 @@
 		6E31C0AA2BBBF0A00046FE65 /* RxBaseTableCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E31C0A92BBBF0A00046FE65 /* RxBaseTableCell.swift */; };
 		6E31C0AC2BBC01E50046FE65 /* EditShoppingSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E31C0AB2BBC01E50046FE65 /* EditShoppingSheet.swift */; };
 		6E31C0B42BBD519B0046FE65 /* SignUpViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E31C0B32BBD519B0046FE65 /* SignUpViewModel.swift */; };
+		6E31C0B62BBD5B4B0046FE65 /* PasswordViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E31C0B52BBD5B4B0046FE65 /* PasswordViewModel.swift */; };
 		6E7326DF2BB5AE54000C2C7E /* KazUtility in Frameworks */ = {isa = PBXBuildFile; productRef = 6E7326DE2BB5AE54000C2C7E /* KazUtility */; };
 		6E7326E52BB83CB8000C2C7E /* SampleViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E7326E42BB83CB8000C2C7E /* SampleViewController.swift */; };
 /* End PBXBuildFile section */
@@ -96,6 +97,7 @@
 		6E31C0A92BBBF0A00046FE65 /* RxBaseTableCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RxBaseTableCell.swift; sourceTree = "<group>"; };
 		6E31C0AB2BBC01E50046FE65 /* EditShoppingSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditShoppingSheet.swift; sourceTree = "<group>"; };
 		6E31C0B32BBD519B0046FE65 /* SignUpViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignUpViewModel.swift; sourceTree = "<group>"; };
+		6E31C0B52BBD5B4B0046FE65 /* PasswordViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasswordViewModel.swift; sourceTree = "<group>"; };
 		6E7326E42BB83CB8000C2C7E /* SampleViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -193,6 +195,7 @@
 				041280692AEFA91E00972552 /* SignUpViewController.swift */,
 				6E31C0B32BBD519B0046FE65 /* SignUpViewModel.swift */,
 				0412806B2AEFABFE00972552 /* PasswordViewController.swift */,
+				6E31C0B52BBD5B4B0046FE65 /* PasswordViewModel.swift */,
 			);
 			path = SignUp;
 			sourceTree = "<group>";
@@ -425,6 +428,7 @@
 				041280242AEF9BAB00972552 /* AppDelegate.swift in Sources */,
 				6E31C0972BBAE6890046FE65 /* SearchTableViewCell.swift in Sources */,
 				6E31C0982BBAE6890046FE65 /* SearchViewController.swift in Sources */,
+				6E31C0B62BBD5B4B0046FE65 /* PasswordViewModel.swift in Sources */,
 				041280732AEFAD4B00972552 /* NicknameViewController.swift in Sources */,
 				0412806A2AEFA91E00972552 /* SignUpViewController.swift in Sources */,
 				6E31C0AC2BBC01E50046FE65 /* EditShoppingSheet.swift in Sources */,
